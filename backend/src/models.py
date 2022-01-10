@@ -202,12 +202,13 @@ class Resultado(db.Model):
     def serialize(self):
         return{
             "id":self.id,
-            "title":self.id,
+            "title":self.title,
             "content":self.content,
             "created_at":self.created_at,
             "supervision_id":self.supervision_id,
             "requerimiento_id":self.requerimiento_id
         }
+
 
     def save(self):
         db.session.add(self)
@@ -227,13 +228,12 @@ class Supervision(db.Model):
     title= db.Column(db.String(500))
     created_at= db.Column(db.DateTime, default=datetime.utcnow)
     user_id= db.Column(db.Integer, db.ForeignKey('users.id'))
-
     resultados= db.relationship('Resultado', backref='supervision')
 
     def serialize(self):
         return{
             "id":self.id,
-            "title":self.title.serialize(),
+            "title":self.title,
             "content":self.content,
             "created_at":self.created_at,
             "user_id":self.user_id
@@ -242,13 +242,15 @@ class Supervision(db.Model):
     def serialize_with_resultados(self):
         return{
             "id":self.id,
-            "title":self.title.serialize(),
+            "title":self.title,
             "content":self.content,
             "created_at":self.created_at,
             "user_id":self.user_id,
             "resultados": list(map(lambda resultado: resultado.serialize(), self.resultados))
         }
 
+    def get_resultados(self):
+        return list(map(lambda resultado: resultado.serialize(), self.resultados))
 
 
     def save(self):

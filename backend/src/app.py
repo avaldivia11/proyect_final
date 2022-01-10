@@ -4,7 +4,7 @@ from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity, jwt_required
 from flask_cors import CORS
 from werkzeug.security import generate_password_hash, check_password_hash
-from models import db, User, Profile, Role, RoleUser, Pauta, Requerimiento, Resultado
+from models import db, User, Profile, Role, RoleUser, Pauta, Requerimiento, Resultado, Supervision
 
 
 app = Flask(__name__)
@@ -138,6 +138,8 @@ def login():
         phone= request.json.get("phone", "")
 
         user_exist = User.query.filter_by(rut=rut).first()
+
+        
         if not user_exist: return jsonify({"msg": "rut/password son incorrectos"}), 400
 
         if not check_password_hash(user_exist.password, password):
@@ -399,8 +401,40 @@ def resultados(id=None):
         return jsonify({"success": "Los resultados han sido eliminados con exito"}),200
 
 
+@app.route("/api/supervisiones", methods=['GET', 'POST'])
+@app.route('/api/supervisiones/<int:id>', methods=['GET', 'DELETE'])
+def supervisiones(id=None):
+    if request.method == 'GET':
+        if id is not None:
+            supervisiones= Supervision.query.get(id)
+            if not supervisiones: return jsonify({"msg": "Supervision no encontrada"}), 404
+            return jsonify(supervisiones.serialize()), 200
+        else:
+            supervisiones= Supervision.query.all()
+            supervisiones=list(map(lambda supervision: supervision.serialize(),supervisiones))
+            return jsonify(supervisiones), 200
+
+    if request.method == 'POST':
+        
+        content= request.json.get("content")
+        title= request.json.get("title")
+        created_at= request.json.get("created_at")
+        resultados= request.json.get("resultados", "")
 
 
+        supervisiones=Supervision()
+        supervisiones.content= content
+        supervisiones.title = title
+        supervisiones.created_at= created_at
+        supervisiones.save()
+
+        for resultado in resultados:
+            resultado= Resultado.query.get(resultado)
+            supervision.resultados.append(resultado)
+
+        supervisiones.save()
+
+        return jsonify(supervisiones.serialize_with_resultados()), 200
 
 
 if __name__ == '__main__':
