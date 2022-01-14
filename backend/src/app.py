@@ -189,6 +189,8 @@ def register():
         #profile.user_id = user.id
         #profile.save()
 
+        
+
         for role in roles:
             role= Role.query.get(role)
             user.roles.append(role)
